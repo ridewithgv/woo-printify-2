@@ -52,13 +52,11 @@ class PrintifyController extends Controller
 
         $products = $response->json();
         $wooCommerceController = new WooCommerceController();
-
-        foreach ($products as $product) {
+        foreach ($products['data'] as $product) {
             // Convert the product to a JSON string
-            $productJson = json_encode($product);
             try {
                 // Import the product into WooCommerce
-                $wooCommerceController->importProductFromJson($productJson);
+                $wooCommerceController->importProductFromJson($product);
             } catch (\Exception $e) {
                 // Handle exceptions for each product import
                 // Log the error or take other appropriate actions

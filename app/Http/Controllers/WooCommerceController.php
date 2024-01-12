@@ -16,7 +16,7 @@ class WooCommerceController extends Controller
         $this->consumerKey = env('WOOCOMMERCE_CONSUMER_KEY');
         $this->consumerSecret = env('WOOCOMMERCE_CONSUMER_SECRET');
         $this->storeUrl = env('WOOCOMMERCE_STORE_URL');
-    }
+    }    
 
     protected function woocommerceClient()
     {
@@ -26,13 +26,16 @@ class WooCommerceController extends Controller
     }
 
 
-    public function importProductFromJson($productJson)
+    public function importProductFromJson($productData)
     {
-        $productData = json_decode($productJson, true);
+        if (!is_array($productData)) {
+            throw new \Exception("Product data must be an array");
+        }
+    
         $wooCommerceProduct = $this->mapProductToWooCommerce($productData);
         return $this->createProduct($wooCommerceProduct);
     }
-
+    
     private function mapProductToWooCommerce($productData)
     {
         // No need to decode JSON, as $productData is already an array
@@ -56,7 +59,6 @@ class WooCommerceController extends Controller
             'default_attributes' => [], // Set default attributes if necessary
         ];
     }
-
 
     private function mapAttributes($options)
     {
@@ -91,20 +93,38 @@ class WooCommerceController extends Controller
     private function getVariantAttributes($variant, $attributes)
     {
         $variantAttributes = [];
+    
+        // Assuming $variant['options'] is an array of option IDs
+        if (!isset($variant['options']) || !is_array($variant['options'])) {
+            throw new \Exception("Invalid variant options format");
+        }
+    
         foreach ($variant['options'] as $optionId) {
             foreach ($attributes as $attribute) {
+                if (!isset($attribute['name']) || !isset($attribute['options'])) {
+                    // Skip if the attribute format is not correct
+                    continue;
+                }
+    
                 foreach ($attribute['options'] as $option) {
+                    if (!is_array($option) || !isset($option['id'])) {
+                        // Skip if the option format is not correct
+                        continue;
+                    }
+    
                     if ($option['id'] == $optionId) {
                         $variantAttributes[] = [
                             'name' => $attribute['name'],
-                            'option' => $option['title']
+                            'option' => $option['title'] // Assuming 'title' is the correct key
                         ];
                     }
                 }
             }
         }
+    
         return $variantAttributes;
     }
+    
 
     private function mapImages($images)
     {
