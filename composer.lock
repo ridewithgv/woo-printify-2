@@ -4,8 +4,61 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9c491b8531eec05ba41a11d9276a5749",
+    "content-hash": "094030bb38ee66b4b9485b0ac39627eb",
     "packages": [
+        {
+            "name": "automattic/woocommerce",
+            "version": "3.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/woocommerce/wc-api-php.git",
+                "reference": "d3b292f04c0b3b21dced691ebad8be073a83b4ad"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/woocommerce/wc-api-php/zipball/d3b292f04c0b3b21dced691ebad8be073a83b4ad",
+                "reference": "d3b292f04c0b3b21dced691ebad8be073a83b4ad",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-json": "*",
+                "php": ">= 7.1.0"
+            },
+            "require-dev": {
+                "overtrue/phplint": "7.4.x-dev",
+                "phpunit/phpunit": "^8",
+                "squizlabs/php_codesniffer": "3.*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Automattic\\WooCommerce\\": [
+                        "src/WooCommerce"
+                    ]
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Claudio Sanches",
+                    "email": "claudio.sanches@automattic.com"
+                }
+            ],
+            "description": "A PHP wrapper for the WooCommerce REST API",
+            "keywords": [
+                "api",
+                "woocommerce"
+            ],
+            "support": {
+                "issues": "https://github.com/woocommerce/wc-api-php/issues",
+                "source": "https://github.com/woocommerce/wc-api-php/tree/3.1.0"
+            },
+            "time": "2022-03-18T21:46:17+00:00"
+        },
         {
             "name": "brick/math",
             "version": "0.11.0",
@@ -129,6 +182,93 @@
                 }
             ],
             "time": "2023-12-11T17:09:12+00:00"
+        },
+        {
+            "name": "codexshaper/laravel-woocommerce",
+            "version": "v3.0.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Codexshaper/laravel-woocommerce.git",
+                "reference": "3eb797bc3e5985abe3122cf9486b86fbe13ae965"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Codexshaper/laravel-woocommerce/zipball/3eb797bc3e5985abe3122cf9486b86fbe13ae965",
+                "reference": "3eb797bc3e5985abe3122cf9486b86fbe13ae965",
+                "shasum": ""
+            },
+            "require": {
+                "automattic/woocommerce": "^3.0"
+            },
+            "require-dev": {
+                "illuminate/support": "~5.5.40|~5.6.0|~5.7.0|~5.8.0|^6.0|^7.0|^8.0|^9.0",
+                "phpunit/phpunit": "^7.0|^8.0|^9.3"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Codexshaper\\WooCommerce\\WooCommerceServiceProvider"
+                    ],
+                    "aliases": {
+                        "Attribute": "Codexshaper\\WooCommerce\\Models\\Attribute",
+                        "Category": "Codexshaper\\WooCommerce\\Models\\Category",
+                        "Coupon": "Codexshaper\\WooCommerce\\Models\\Coupon",
+                        "Customer": "Codexshaper\\WooCommerce\\Models\\Customer",
+                        "Note": "Codexshaper\\WooCommerce\\Models\\Note",
+                        "Order": "Codexshaper\\WooCommerce\\Models\\Order",
+                        "PaymentGateway": "Codexshaper\\WooCommerce\\Facades\\PaymentGateway",
+                        "Product": "Codexshaper\\WooCommerce\\Models\\Product",
+                        "Refund": "Codexshaper\\WooCommerce\\Models\\Refund",
+                        "Report": "Codexshaper\\WooCommerce\\Models\\Report",
+                        "Review": "Codexshaper\\WooCommerce\\Models\\Review",
+                        "Setting": "Codexshaper\\WooCommerce\\Models\\Setting",
+                        "ShippingMethod": "Codexshaper\\WooCommerce\\Models\\ShippingMethod",
+                        "ShippingZone": "Codexshaper\\WooCommerce\\Models\\ShippingZone",
+                        "ShippingZoneMethod": "Codexshaper\\WooCommerce\\Models\\ShippingZoneMethod",
+                        "System": "Codexshaper\\WooCommerce\\Models\\System",
+                        "Tag": "Codexshaper\\WooCommerce\\Models\\Tag",
+                        "Tax": "Codexshaper\\WooCommerce\\Models\\Tax",
+                        "TaxClass": "Codexshaper\\WooCommerce\\Models\\TaxClass",
+                        "Term": "Codexshaper\\WooCommerce\\Models\\Term",
+                        "Variation": "Codexshaper\\WooCommerce\\Models\\Variation",
+                        "Webhook": "Codexshaper\\WooCommerce\\Facades\\Webhook",
+                        "WooCommerce": "Codexshaper\\WooCommerce\\Facades\\WooCommerce",
+                        "WooAnalytics": "Codexshaper\\WooCommerce\\Facades\\WooAnalytics",
+                        "Query": "Codexshaper\\WooCommerce\\Facades\\Query"
+                    }
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Codexshaper\\WooCommerce\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Md Abu Ahsan Basir",
+                    "email": "maab.career@gmail.com"
+                }
+            ],
+            "description": "WooCommerce Rest API for Laravel",
+            "keywords": [
+                "laravel",
+                "laravel-woocommerce",
+                "laravel-woocommerce-api",
+                "laravel-woocommerce-rest-api",
+                "woocommerce",
+                "woocommerce-api",
+                "woocommerce-rest-api"
+            ],
+            "support": {
+                "issues": "https://github.com/Codexshaper/laravel-woocommerce/issues",
+                "source": "https://github.com/Codexshaper/laravel-woocommerce/tree/v3.0.3"
+            },
+            "time": "2022-09-25T02:50:52+00:00"
         },
         {
             "name": "dflydev/dot-access-data",
@@ -5896,6 +6036,143 @@
                 "source": "https://github.com/hamcrest/hamcrest-php/tree/v2.0.1"
             },
             "time": "2020-07-09T08:09:16+00:00"
+        },
+        {
+            "name": "laradumps/laradumps",
+            "version": "v2.3.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/laradumps/laradumps.git",
+                "reference": "e981115f7a12e01e60715c45044ac0540088d92d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/laradumps/laradumps/zipball/e981115f7a12e01e60715c45044ac0540088d92d",
+                "reference": "e981115f7a12e01e60715c45044ac0540088d92d",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/mail": "^9.0|^10.0",
+                "illuminate/support": "^9.0|^10.0",
+                "laradumps/laradumps-core": "^1.0",
+                "nunomaduro/termwind": "^1.15.1",
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "larastan/larastan": "^2.7",
+                "laravel/pint": "^1.13.7",
+                "orchestra/testbench": "^8.17",
+                "pestphp/pest": "^2.28.1",
+                "symfony/var-dumper": "^6.4.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "LaraDumps\\LaraDumps\\LaraDumpsServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/functions.php"
+                ],
+                "psr-4": {
+                    "LaraDumps\\LaraDumps\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Luan Freitas",
+                    "email": "luanfreitas10@protonmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A Dump Component for Laravel.",
+            "homepage": "https://github.com/laradumps/laradumps",
+            "support": {
+                "issues": "https://github.com/laradumps/laradumps/issues",
+                "source": "https://github.com/laradumps/laradumps/tree/v2.3.1"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/luanfreitasdev",
+                    "type": "github"
+                }
+            ],
+            "time": "2023-12-30T20:04:05+00:00"
+        },
+        {
+            "name": "laradumps/laradumps-core",
+            "version": "v1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/laradumps/laradumps-core.git",
+                "reference": "00bb99f7c3c5585e8a9e1221ff5541f58fe412b2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/laradumps/laradumps-core/zipball/00bb99f7c3c5585e8a9e1221ff5541f58fe412b2",
+                "reference": "00bb99f7c3c5585e8a9e1221ff5541f58fe412b2",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "nesbot/carbon": "^2.72",
+                "nunomaduro/termwind": "^1.15|^2.0",
+                "php": "^8.1",
+                "ramsey/uuid": "^4.7.5",
+                "symfony/console": "^6.4|^7.0",
+                "symfony/finder": "^6.4|^7.0",
+                "symfony/process": "^6.4|^7.0",
+                "symfony/var-dumper": "^6.4|^7.0",
+                "vlucas/phpdotenv": "^5.6"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.13.7",
+                "pestphp/pest": "^2.28.1",
+                "phpstan/phpstan": "^1.10.50"
+            },
+            "bin": [
+                "bin/laradumps"
+            ],
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/functions.php"
+                ],
+                "psr-4": {
+                    "LaraDumps\\LaraDumpsCore\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Luan Freitas",
+                    "email": "luanfreitas10@protonmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A dump component for php code.",
+            "homepage": "https://github.com/laradumps/laradumps-core",
+            "support": {
+                "issues": "https://github.com/laradumps/laradumps-core/issues",
+                "source": "https://github.com/laradumps/laradumps-core/tree/v1.1.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/luanfreitasdev",
+                    "type": "github"
+                }
+            ],
+            "time": "2023-12-28T18:04:20+00:00"
         },
         {
             "name": "laravel/pint",

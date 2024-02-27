@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Config;
 
 class PrintifyController extends Controller
 {
@@ -11,12 +12,12 @@ class PrintifyController extends Controller
 
     public function __construct()
     {
-        $this->printifyApiKey = env('PRINTIFY_API_KEY');
+        $this->printifyApiKey = config('printify.printify_token');
     }
 
     protected function printifyClient()
     {
-        return Http::baseUrl('https://api.printify.com/v1/')
+        return Http::baseUrl('https://api.printify.com/v1')
                    ->withHeaders([
                        'Authorization' => 'Bearer ' . $this->printifyApiKey,
                    ]);
@@ -44,7 +45,7 @@ class PrintifyController extends Controller
 
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $this->printifyApiKey,
-        ])->get("https://api.printify.com/v1/shops/{$shopId}/products.json");
+        ])->get("https://api.printify.com/v1/shops/{$shopId}/products.json?limit=2");
 
         if (!$response->successful()) {
             return response()->json(['error' => 'Failed to retrieve products'], $response->status());
@@ -52,8 +53,11 @@ class PrintifyController extends Controller
 
         $products = $response->json();
         $wooCommerceController = new WooCommerceController();
-        foreach ($products['data'] as $product) {
+        foreach ($products['data'] as $index => $product) {
             // Convert the product to a JSON string
+
+            ds($product);
+
             try {
                 // Import the product into WooCommerce
                 $wooCommerceController->importProductFromJson($product);

@@ -1,6 +1,8 @@
 <?php
 use App\Http\Controllers\PrintifyController;
 use App\Http\Controllers\WooCommerceController;
+use App\Http\Controllers\ProductsController;
+
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -19,3 +21,5 @@ Route::get('/', function () {
 });
 
 Route::get('/import', [PrintifyController::class, 'importProducts']);
+Route::get('/test', [WooCommerceController::class, 'testProduct']);
+Route::get('/dbimport', [ProductsController::class, 'createTestProduct']);
