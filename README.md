@@ -64,3 +64,57 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+
+
+
+
+
+##  Instructions to Run Laravel Horizon
+##  Requirements
+- Redis must be installed and running on the system.
+
+## Steps:
+- Set enviroment variables as follows:
+   REDIS_CLIENT=predis  
+   QUEUE_CONNECTION=redis
+- Update Composer:
+  Ensure you have the latest dependencies by updating Composer.
+        composer update
+
+- After composer update, publish its assets using the horizon:install Artisan command:
+    php artisan horizon:install
+
+- Run Migrations:
+ Execute the following command to run the database migrations.
+        php artisan migrate
+
+- Seed the Database:
+  Seed the database with initial data using the following command.
+        php artisan db:seed
+
+
+- Serve the Application:
+  Run the Laravel development server.
+        php artisan serve
+
+   Access your application at http://localhost:8000 in your web browser.
+
+- Run Laravel Horizon:
+  Start the Horizon dashboard to monitor and manage your Redis job queues.
+  php artisan horizon
+
+    This command will start the Horizon dashboard, which is usually available at http://localhost:8000/horizon. Access it in your web browser.
+
+## Login Credentials to see horizon dashbord:
+    Email: admin@gmail.com
+    Password: password
+
+   - Use these credentials to log in to your application and access the Laravel Horizon dashboard.
+
+## Importing Products
+   To push the job in queue manually, Navigate to http://localhost:8000/newimport and import your products.
+   To automate it set the cron for laravel and it will push to queue automatically
+
+## Monitoring with Horizon
+   Visit the Horizon dashboard at http://localhost:8000/horizon to monitor and manage your job queues.
