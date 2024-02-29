@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\StoreProducts;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Config;
+use Illuminate\Support\Facades\Log;
 
 class PrintifyController extends Controller
 {
@@ -72,5 +74,43 @@ class PrintifyController extends Controller
         return response()->json(['success' => 'Products imported successfully.']);
     }
 
+    public function newImportProducts()
+    {
+
+       
+        $shopId = $this->getShopId(); 
+        if (!$shopId) {
+            $this->error('No shop ID found');
+            return;
+        }
+
+        $limit = 20; 
+       
+        $currentPage = cache()->get('printify_current_page', 1);
+       
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $this->printifyApiKey,
+        ])->get("https://api.printify.com/v1/shops/{$shopId}/products.json?limit={$limit}&page={$currentPage}");
+  
+        if (!$response->successful()) {
+            Log::error("https://api.printify.com/v1/shops/{$shopId}/products.json?limit={$limit}&page={$currentPage}");
+            return response()->json(['error' => 'Failed to retrieve products'], $response->status());
+        
+        }
+
+        $products = $response->json();
+ 
+        dispatch(new StoreProducts($products["data"]));
+        Log::info("https://api.printify.com/v1/shops/{$shopId}/products.json?limit={$limit}&page={$currentPage}");
     
+        $currentPage++;
+
+        if ($currentPage > $response->json()['last_page']) {
+            $currentPage = 1;
+        }
+
+        cache()->put('printify_current_page', $currentPage, 60 * 24); 
+
+        return response()->json(['success' => 'Products imported successfully.']);
+    }
 }
