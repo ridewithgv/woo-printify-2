@@ -76,8 +76,8 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 
 ## Steps:
 - Set enviroment variables as follows:
-    REDIS_CLIENT=predis  
-    QUEUE_CONNECTION=redis
+   REDIS_CLIENT=predis  
+   QUEUE_CONNECTION=redis
 - Update Composer:
   Ensure you have the latest dependencies by updating Composer.
         composer update
