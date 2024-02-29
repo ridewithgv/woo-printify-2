@@ -75,9 +75,15 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 - Redis must be installed and running on the system.
 
 ## Steps:
+- Set enviroment variables as follows:
+    REDIS_CLIENT=predis  
+    QUEUE_CONNECTION=redis
 - Update Composer:
   Ensure you have the latest dependencies by updating Composer.
         composer update
+
+- After composer update, publish its assets using the horizon:install Artisan command:
+    php artisan horizon:install
 
 - Run Migrations:
  Execute the following command to run the database migrations.
