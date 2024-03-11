@@ -84,7 +84,7 @@ class PrintifyController extends Controller
             return;
         }
 
-        $limit = 20; 
+        $limit = 10; 
        
         $currentPage = cache()->get('printify_current_page', 1);
        
@@ -100,7 +100,11 @@ class PrintifyController extends Controller
 
         $products = $response->json();
  
-        dispatch(new StoreProducts($products["data"]));
+        foreach ($products['data'] as $index => $product) {
+            // Convert the product to a JSON string
+            dispatch(new StoreProducts($product))->delay(now()->addSeconds(20));
+
+        }
         Log::info("https://api.printify.com/v1/shops/{$shopId}/products.json?limit={$limit}&page={$currentPage}");
     
         $currentPage++;
@@ -111,6 +115,6 @@ class PrintifyController extends Controller
 
         cache()->put('printify_current_page', $currentPage, 60 * 24); 
 
-        return response()->json(['success' => 'Products imported successfully.']);
+        return response()->json(['success' => $limit.' product successfully added to the Job queue for page no: '.$currentPage]);
     }
 }

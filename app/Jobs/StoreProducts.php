@@ -15,13 +15,13 @@ class StoreProducts implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $products;
+    protected $product;
     /**
      * Create a new job instance.
      */
-    public function __construct($products)
+    public function __construct($product)
     {
-        $this->products = $products;
+        $this->product = $product;
     }
 
     /**
@@ -30,19 +30,15 @@ class StoreProducts implements ShouldQueue
     public function handle(): void
     {
         $wooCommerceController = new WooCommerceControllerNew();
-        foreach ($this->products as $index => $product) {
-            // Convert the product to a JSON string
 
 
-            Log::info("products----------".json_encode($product));
+        Log::info("products----------".json_encode($this->product));
 
-            try {
-                // Import the product into WooCommerce
-                $wooCommerceController->importProductFromJson($product);
-            } catch (\Exception $e) {
-                Log::info("Exception".$e->getMessage());
-                continue;
-            }
+        try {
+            // Import the product into WooCommerce
+            $wooCommerceController->importProductFromJson($this->product);
+        } catch (\Exception $e) {
+            Log::info("Exception".$e->getMessage());
         }
     }
 }
