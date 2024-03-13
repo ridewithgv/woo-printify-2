@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\StoreProducts;
+use Codexshaper\WooCommerce\Facades\Attribute;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Config;
@@ -76,7 +77,6 @@ class PrintifyController extends Controller
 
     public function newImportProducts()
     {
-
        
         $shopId = $this->getShopId(); 
         if (!$shopId) {
@@ -84,7 +84,7 @@ class PrintifyController extends Controller
             return;
         }
 
-        $limit = 10; 
+        $limit = 1; 
        
         $currentPage = cache()->get('printify_current_page', 1);
        
@@ -116,5 +116,56 @@ class PrintifyController extends Controller
         cache()->put('printify_current_page', $currentPage, 60 * 24); 
 
         return response()->json(['success' => $limit.' product successfully added to the Job queue for page no: '.$currentPage]);
+    }
+
+    public function testVariation()
+    {
+        $shopId = $this->getShopId(); 
+        if (!$shopId) {
+            $this->error('No shop ID found');
+            return;
+        }
+
+        $limit = 1; 
+       
+        $currentPage = cache()->get('printify_current_page', 1);
+       
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $this->printifyApiKey,
+        ])->get("https://api.printify.com/v1/shops/{$shopId}/products.json?limit={$limit}&page={$currentPage}");
+  
+        if (!$response->successful()) {
+            Log::error("https://api.printify.com/v1/shops/{$shopId}/products.json?limit={$limit}&page={$currentPage}");
+            return response()->json(['error' => 'Failed to retrieve products'], $response->status());
+        
+        }
+
+        $products = $response->json();
+
+        // return $products['data'][0]['variants'];
+ 
+        foreach ($products['data'] as $index => $product) {
+            $wooCommerceController = new WooCommerceControllerNew();
+
+        try {
+            // Import the product into WooCommerce
+            $wooCommerceController->importProductFromJson($product);
+        } catch (\Exception $e) {
+            Log::info("Exception".$e->getMessage());
+        }
+
+        }
+        Log::info("https://api.printify.com/v1/shops/{$shopId}/products.json?limit={$limit}&page={$currentPage}");
+    
+        $currentPage++;
+
+        if ($currentPage > $response->json()['last_page']) {
+            $currentPage = 1;
+        }
+
+        cache()->put('printify_current_page', $currentPage, 60 * 24); 
+
+        return response()->json(['success' => $limit.' product successfully added to the Job queue for page no: '.$currentPage]);
+        
     }
 }

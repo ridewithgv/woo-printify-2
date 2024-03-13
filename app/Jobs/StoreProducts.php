@@ -31,9 +31,6 @@ class StoreProducts implements ShouldQueue
     {
         $wooCommerceController = new WooCommerceControllerNew();
 
-
-        Log::info("products----------".json_encode($this->product));
-
         try {
             // Import the product into WooCommerce
             $wooCommerceController->importProductFromJson($this->product);

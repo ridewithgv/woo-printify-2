@@ -7,7 +7,12 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Codexshaper\WooCommerce\Facades\Product;
 use App\Http\Controllers\ProductsController;
+use App\Models\Options;
+use App\Models\OptionValues;
 use App\Models\Products;
+use App\Models\Tags;
+use Codexshaper\WooCommerce\Facades\Attribute;
+use Codexshaper\WooCommerce\Facades\Variation;
 
 class WooCommerceControllerNew extends Controller
 {
@@ -28,6 +33,8 @@ class WooCommerceControllerNew extends Controller
         if (!is_array($productData)) {
             throw new \Exception("Product data must be an array");
         }
+
+        // return $productData;
     
         $wooCommerceProduct = $this->mapProductToWooCommerce($productData);
         return $this->createProduct($wooCommerceProduct);
@@ -39,12 +46,13 @@ class WooCommerceControllerNew extends Controller
             throw new \Exception("Invalid product data structure");
         }
 
-        $attributes = $this->mapAttributes($productData['options']);
+        $attributes = $this->mapAttributesNew($productData['options']);
         $variations = $this->mapVariations($productData['variants'], $attributes);
 
         $productImport = [
             'name' => $productData['title'],
             'type' => 'variable',
+            'manage_stock' => true,
             'description' => $productData['description'],
             'sku' => $productData['id'],
             'blueprint_id' => $productData['blueprint_id'],
@@ -65,9 +73,46 @@ class WooCommerceControllerNew extends Controller
         ];
 
        $product =  Products::create($productImport);
-       Log::info("prodcut at laravel db".$product);
-         return $productImport;
+       //Log::info("prodcut at laravel db".$product);
+
+       if(isset($productData['options']) && is_array($productData['options'])){
+
+           foreach($productData['options'] as $options)
+            {
+                $option = Options::where('name', $options['name'])->first();
+                if(!$option){
+                    $option = Options::create($options);
+                    
+                }
+                $product->options()->attach($option);
+                foreach($options['values'] as $values)
+                {
+                    $attribute = null;
+                    
+                    OptionValues::create([
+                        'option_id' => $option['id'],
+                        'attribute_id' => $values['id'],
+                        'value' => $values['title'],
+                        'additional_info' => $attribute,
+                    ]);
+                }
+            }
+        }
+       if(isset($productData['tags']) && is_array($productData['tags'])){
+
+            foreach($productData['tags'] as $tags) 
+            {
+                $tag = Tags::where('name', $tags)->first();
+                if(!$tag){
+                    $tag = Tags::create(['name' => $tags]);
+                    
+                }
+                $product->tags()->attach($tag);
+            }
+        }
+        return $productImport;
     }
+
 
     private function mapAttributes($options)
     {
@@ -83,6 +128,47 @@ class WooCommerceControllerNew extends Controller
         }
         return $attributes;
     }
+    private function mapAttributesNew($options)
+    {
+        $attributes = [];
+        $stored_attributes = Attribute::all();
+        foreach ($options as $option) {
+            # code...
+            $existingAttribute = $stored_attributes->where('name', $option['name'])->first();
+            if(!$existingAttribute){
+                $newAttribute = Attribute::create([
+                    'name' => $option['name'],
+                    'type' => 'select',
+                    'has_archives' => true,
+                ]);
+                // Add the newly created attribute to the stored attributes collection
+                $stored_attributes->push([
+                    'name' => $option['name'],
+                    'type' => 'select',
+                    'has_archives' => true,
+                ]);
+                $existingAttribute = $newAttribute;
+            }
+
+            foreach ($stored_attributes as $value) {
+                if($value->name == $option['name']){
+                    $attribute = [
+                        'id' => $value->id,
+                        'position' => 0,
+                        'visible' => false,
+                        'variation' => true,
+                        'options' => array_map(function ($value) {
+                            return $value['title'];
+                        }, $option['values'])
+                    ];
+
+                }
+            }
+            $attributes[] = $attribute;
+
+        }
+        return $attributes;
+    }
 
     private function mapVariations($variants, $attributes)
     {
@@ -91,7 +177,9 @@ class WooCommerceControllerNew extends Controller
             $mappedVariant = [
                 'sku' => $variant['sku'],
                 'regular_price' => (string)($variant['price'] / 100), // Assuming price is in cents
-                'attributes' => $this->getVariantAttributes($variant, $attributes),
+                'manage_stock' => true,
+                'stock_quantity' => $variant['quantity'],
+                'attributes' => $this->getVariantAttributesNew($variant, $attributes),
                 // Add other variant details as needed
             ];
             $mappedVariants[] = $mappedVariant;
@@ -133,6 +221,39 @@ class WooCommerceControllerNew extends Controller
     
         return $variantAttributes;
     }
+    private function getVariantAttributesNew($variant, $attributes)
+    {
+        $components = explode(' / ', $variant['title']);
+        $variantAttributes = [];
+    
+        // Assuming $variant['options'] is an array of option IDs
+        if (!isset($components) || !is_array($components)) {
+            throw new \Exception("Invalid variant options format");
+        }
+    
+        foreach ($components as $variant_title) {
+            // dd($variant_title);
+            foreach ($attributes as $attribute) {
+                // if (!isset($attribute['name']) || !isset($attribute['options'])) {
+                //     // Skip if the attribute format is not correct
+                //     dd(11);
+                //     continue;
+                // }
+    
+                foreach ($attribute['options'] as $option) {
+                    // dd($option);
+                    if ($variant_title == $option) {
+                        $variantAttributes[] = [
+                            'id' => $attribute['id'],
+                            'option' => $option // Assuming 'title' is the correct key
+                        ];
+                    }
+                }
+            }
+        }
+    
+        return $variantAttributes;
+    }
     
 
     private function mapImages($images)
@@ -144,27 +265,30 @@ class WooCommerceControllerNew extends Controller
 
     public function createProduct($productData)
     {
+        
+
         try {
             $product = Product::create($productData);
 
-            ds($product);
             // Check if product is variable and has variations
+           
             if ($productData['type'] === 'variable' && !empty($productData['variations'])) {
                 foreach ($productData['variations'] as $variationData) {
                     // Create each variation
-                    ds($product->id);
-                    $variationData['parent_id'] = $product->id; // Set the ID of the parent product
-                    $variation = Product::createVariation($product->id, $variationData);
+                    Log::info("+++++++++++++++++++++++");
+                    Log::info($variationData);
+                    Log::info("===================");
+                    $variation = Variation::create($product['id'], $variationData);
                 }
             }
 
-            return $product;
+            return $variation;
         } catch (\Exception $e) {
             Log::error('Failed to create product in WooCommerce', [
                 'exception_message' => $e->getMessage(),
-                'sent_product_data' => $productData
             ]);
             throw new \Exception('Failed to create product: ' . $e->getMessage());
         }
     }
+
 }
