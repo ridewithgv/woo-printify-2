@@ -16,6 +16,7 @@ class StoreProducts implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $product;
+    protected $timeout = 120;
     /**
      * Create a new job instance.
      */
