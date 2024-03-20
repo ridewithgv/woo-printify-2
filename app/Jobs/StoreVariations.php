@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use Codexshaper\WooCommerce\Facades\Variation;
+use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\Log;
 
 class StoreVariations implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $variation;
     protected $product_id;
@@ -30,8 +31,7 @@ class StoreVariations implements ShouldQueue
      */
     public function handle(): void
     {
-        
-        $variation = Variation::create($this->product_id, $this->variation);
+        Variation::create($this->product_id, $this->variation);
         
     }
 }

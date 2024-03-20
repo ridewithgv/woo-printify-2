@@ -14,6 +14,9 @@ use App\Models\Products;
 use App\Models\Tags;
 use Codexshaper\WooCommerce\Facades\Attribute;
 use Codexshaper\WooCommerce\Facades\Variation;
+use Illuminate\Bus\Batch;
+use Illuminate\Support\Facades\Bus;
+use Throwable;
 
 class WooCommerceControllerNew extends Controller
 {
@@ -35,10 +38,9 @@ class WooCommerceControllerNew extends Controller
             throw new \Exception("Product data must be an array");
         }
 
-        // return $productData;
     
         $wooCommerceProduct = $this->mapProductToWooCommerce($productData);
-        return $this->createProduct($wooCommerceProduct);
+        return $this->createProduct($wooCommerceProduct, $productData);
     }
     
     private function mapProductToWooCommerce($productData)
@@ -77,9 +79,11 @@ class WooCommerceControllerNew extends Controller
             'default_attributes' => [], // Set default attributes if necessary
         ];
 
-       $product =  Products::create($productImport);
-    //    return json($product);
-       //Log::info("prodcut at laravel db".$product);
+       $product =  Products::where('sku', $productImport['sku'])->first();
+       if(!$product){
+           $product =  Products::create($productImport);
+
+       }
 
        if(isset($productData['options']) && is_array($productData['options'])){
 
@@ -114,6 +118,12 @@ class WooCommerceControllerNew extends Controller
                     
                 }
                 $product->tags()->attach($tag);
+            }
+        }
+        if(isset($productData['images']) && is_array($productData['images'])){
+            foreach($productData['images'] as $images)
+            {
+                $product->images()->create($images);
             }
         }
         return $productImport;
@@ -166,15 +176,18 @@ class WooCommerceControllerNew extends Controller
     {
         $mappedVariants = [];
         foreach ($variants as $variant) {
-            $mappedVariant = [
-                'sku' => $variant['sku'],
-                'regular_price' => (string)($variant['price'] / 100), // Assuming price is in cents
-                'manage_stock' => true,
-                'stock_quantity' => $variant['quantity'],
-                'attributes' => $this->getVariantAttributesNew($variant, $attributes),
-                // Add other variant details as needed
-            ];
-            $mappedVariants[] = $mappedVariant;
+            if($variant['is_enabled']){
+                $mappedVariant = [
+                    'sku' => $variant['sku'],
+                    'regular_price' => (string)($variant['price'] / 100), // Assuming price is in cents
+                    'manage_stock' => true,
+                    'stock_quantity' => $variant['quantity'],
+                    'attributes' => $this->getVariantAttributesNew($variant, $attributes),
+                    // Add other variant details as needed
+                ];
+                $mappedVariants[] = $mappedVariant;
+
+            }
         }
         return $mappedVariants;
     }
@@ -193,11 +206,10 @@ class WooCommerceControllerNew extends Controller
         foreach ($components as $variant_title) {
             // dd($variant_title);
             foreach ($attributes as $attribute) {
-                // if (!isset($attribute['name']) || !isset($attribute['options'])) {
-                //     // Skip if the attribute format is not correct
-                //     dd(11);
-                //     continue;
-                // }
+                if ( !isset($attribute['options'])) {
+                    // Skip if the attribute format is not correct
+                    continue;
+                }
     
                 foreach ($attribute['options'] as $option) {
                     // dd($option);
@@ -222,7 +234,7 @@ class WooCommerceControllerNew extends Controller
         }, $images);
     }
 
-    public function createProduct($productData)
+    public function createProduct($productData, $productDataOfPrintifyAPI)
     {
         
 
@@ -230,26 +242,64 @@ class WooCommerceControllerNew extends Controller
             $product = Product::create($productData);
 
             // Check if product is variable and has variations
-           
+            Log::info("product created");
             if ($productData['type'] === 'variable' && !empty($productData['variations'])) {
-
-                foreach ($productData['variations'] as $variationData) {
-                    // Create each variation
-                    Log::info("+++++++++++++++++++++++");
-                    Log::info($variationData);
-                    Log::info("===================");
-                    dispatch(new StoreVariations($variationData,  $product['id']));
-                }
                 
+                $jobs = [];
+                foreach ($productData['variations'] as $variationData) {
+                    $img = $this->getVariantImage($product, $productDataOfPrintifyAPI);
+
+                    $variationData['image'] = $img;
+                    
+                    $jobs[] = new StoreVariations($variationData,  $product['id']);
+                }
+
+                $batch = Bus::batch($jobs)
+                ->then(function (Batch $batch) {
+                    // All jobs completed successfully...
+                    Log::info('All Store Variations jobs completed successfully for batch ID: ' . $batch->id);
+                })->catch(function (Batch $batch, Throwable $e) {
+                    // First batch job failure detected...
+                    Log::info('Exception: ' . $e->getMessage());
+                })->finally(function (Batch $batch) {
+                    // The batch has finished executing...
+                    Log::info('The Store Variations batch has finished executing...');
+                })->name('Import Variations')
+                    ->onConnection('redis')
+                    ->dispatch();
+            
             }
 
-            // return $variation;
         } catch (\Exception $e) {
             Log::error('Failed to create product in WooCommerce', [
                 'exception_message' => $e->getMessage(),
             ]);
             throw new \Exception('Failed to create product: ' . $e->getMessage());
         }
+    }
+
+    private function getVariantImage($product, $productDataOfPrintifyAPI)
+    {
+        $imageid = [];
+        foreach($productDataOfPrintifyAPI['variants'] as $variant){
+            if($variant['is_enabled']){
+                foreach($productDataOfPrintifyAPI['images'] as $image){
+                    if(in_array($variant['id'], $image['variant_ids'])){
+                        $filename = basename(parse_url($image['src'], PHP_URL_PATH));
+                        
+                        foreach ($product['images'] as  $value) {
+                            if($value->name == $filename){
+                                $imageid['id'] = $value->id;
+                            }
+                        }
+                    }
+
+
+                }
+            }
+        }
+        Log::info('image-id----'. json_encode($imageid));
+        return $imageid;
     }
 
 }
